@@ -20,6 +20,8 @@ func sendCroppedPicture(once *bool, ctx context.Context, update tgbotapi.Update,
 
 	var buf []byte
 
+	var sliceOfPhotos []interface{}
+
 	xpathCookie := `/html/body/div[1]/div/div/div[1]/div[1]/div/div/div/div/div[2]/div[1]`
 	xpathScreenshot := `//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/section/div/div/div/div/div[1]/div/div/article`
 
@@ -46,7 +48,9 @@ func sendCroppedPicture(once *bool, ctx context.Context, update tgbotapi.Update,
 				Bytes: pict,
 			}
 
-			bot.Send(tgbotapi.NewPhoto(update.Message.Chat.ID, photoFileBytes))
+			inputPhoto := tgbotapi.NewInputMediaPhoto(photoFileBytes)
+
+			sliceOfPhotos = append(sliceOfPhotos, inputPhoto)
 		} else {
 
 			photoFileBytes := tgbotapi.FileBytes{
@@ -54,7 +58,13 @@ func sendCroppedPicture(once *bool, ctx context.Context, update tgbotapi.Update,
 				Bytes: buf,
 			}
 
-			bot.Send(tgbotapi.NewPhoto(update.Message.Chat.ID, photoFileBytes))
+			inputPhoto := tgbotapi.NewInputMediaPhoto(photoFileBytes)
+
+			sliceOfPhotos = append(sliceOfPhotos, inputPhoto)
 		}
 	}
+
+	mediaGroup := tgbotapi.NewMediaGroup(update.Message.Chat.ID, sliceOfPhotos)
+	mediaGroup.ReplyToMessageID = update.Message.MessageID
+	bot.Send(mediaGroup)
 }
