@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"regexp"
 	"time"
@@ -16,6 +17,12 @@ func sendCroppedPicture(once *bool, ctx context.Context, update tgbotapi.Update,
 	regexp, _ := regexp.Compile(`(twitter\.com\/([\d\w]*\/*)*)`)
 	links := regexp.FindAllStringSubmatch(update.Message.Text, -1)
 
+	lnksCaption := ""
+
+	for _, el := range links {
+		lnksCaption += fmt.Sprintf("Ссылка на тви: %s \n", el[1])
+	}
+
 	log.Println(links)
 
 	var buf []byte
@@ -25,7 +32,7 @@ func sendCroppedPicture(once *bool, ctx context.Context, update tgbotapi.Update,
 	xpathCookie := `/html/body/div[1]/div/div/div[1]/div[1]/div/div/div/div/div[2]/div[1]`
 	xpathScreenshot := `//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/section/div/div/div/div/div[1]/div/div/article`
 
-	for _, el := range links {
+	for idx, el := range links {
 
 		url := el[1]
 
@@ -50,6 +57,10 @@ func sendCroppedPicture(once *bool, ctx context.Context, update tgbotapi.Update,
 
 			inputPhoto := tgbotapi.NewInputMediaPhoto(photoFileBytes)
 
+			if idx == 0 {
+				inputPhoto.Caption = lnksCaption
+			}
+
 			sliceOfPhotos = append(sliceOfPhotos, inputPhoto)
 		} else {
 
@@ -59,6 +70,10 @@ func sendCroppedPicture(once *bool, ctx context.Context, update tgbotapi.Update,
 			}
 
 			inputPhoto := tgbotapi.NewInputMediaPhoto(photoFileBytes)
+
+			if idx == 0 {
+				inputPhoto.Caption = lnksCaption
+			}
 
 			sliceOfPhotos = append(sliceOfPhotos, inputPhoto)
 		}
